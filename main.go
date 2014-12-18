@@ -6,7 +6,7 @@
 
 * Creation Date : 12-14-2014
 
-* Last Modified : Mon 15 Dec 2014 07:10:23 PM UTC
+* Last Modified : Thu 18 Dec 2014 01:30:18 AM UTC
 
 * Created By : Kiyor
 
@@ -98,8 +98,8 @@ func main() {
 }
 
 func processing(line Line, ch chan Line) {
-	if len(line.line) > 0 && line.line[len(line.line)-1:] == "\n" {
-		line.line = line.line[:len(line.line)-1]
+	if len(line.line) > 0 {
+		line.line = strings.Trim(line.line, "\n")
 	}
 	if reIp.MatchString(line.line) {
 		part := reIp.FindAllStringSubmatch(line.line, -1)
