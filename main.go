@@ -6,7 +6,7 @@
 
 * Creation Date : 12-14-2014
 
-* Last Modified : Fri 19 Dec 2014 12:38:16 AM UTC
+* Last Modified : Thu Dec 18 17:00:19 2014
 
 * Created By : Kiyor
 
@@ -84,7 +84,7 @@ func main() {
 					index: i,
 					line:  l,
 				}
-				for *wg.count > 1000 {
+				for *wg.count > 50 {
 					time.Sleep(1 * time.Millisecond)
 				}
 				wg.add(1)
