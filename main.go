@@ -6,7 +6,7 @@
 
 * Creation Date : 12-14-2014
 
-* Last Modified : Thu 18 Dec 2014 01:30:18 AM UTC
+* Last Modified : Fri 19 Dec 2014 12:38:16 AM UTC
 
 * Created By : Kiyor
 
@@ -43,11 +43,27 @@ type Line struct {
 	line  string
 }
 
+type Wg struct {
+	sync.WaitGroup
+	count *int64
+}
+
+func (wg *Wg) add(i int) {
+	wg.Add(i)
+	*wg.count++
+}
+
+func (wg *Wg) done() {
+	*wg.count--
+	wg.Done()
+}
+
 func main() {
 
 	stop := make(chan bool)
 	ch := make(chan Line, 1)
-	var wg sync.WaitGroup
+	var wg Wg
+	wg.count = new(int64)
 
 	var i int64
 	go func() {
@@ -68,7 +84,10 @@ func main() {
 					index: i,
 					line:  l,
 				}
-				wg.Add(1)
+				for *wg.count > 1000 {
+					time.Sleep(1 * time.Millisecond)
+				}
+				wg.add(1)
 				go processing(line, ch)
 				i++
 			}
@@ -83,7 +102,7 @@ func main() {
 			case i2:
 				fmt.Println(l.line)
 				i2++
-				wg.Done()
+				wg.done()
 			default:
 				// if index is not expect, then create a backgroup process send back channel
 				go func(l Line) {
