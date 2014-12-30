@@ -6,7 +6,7 @@
 
 * Creation Date : 12-14-2014
 
-* Last Modified : Tue 30 Dec 2014 06:51:51 PM UTC
+* Last Modified : Tue 30 Dec 2014 07:06:14 PM UTC
 
 * Created By : Kiyor
 
@@ -31,10 +31,12 @@ import (
 
 var (
 	reIp = regexp.MustCompile(`(([^\d])|^)(\d+\.\d+\.\d+\.\d+)(([^\d])|$)`)
+	pool *Pool
 )
 
 func init() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
+	pool = NewPool(20)
 }
 
 type Line struct {
@@ -83,11 +85,9 @@ func main() {
 					index: i,
 					line:  l,
 				}
-				for *wg.count > 50 {
-					time.Sleep(1 * time.Millisecond)
-				}
+				c := pool.Borrow()
 				wg.add(1)
-				go processing(line, ch)
+				go c.processing(line, ch)
 				i++
 			}
 		}
@@ -115,7 +115,8 @@ func main() {
 	}
 }
 
-func processing(line Line, ch chan Line) {
+func (c *Client) processing(line Line, ch chan Line) {
+	defer pool.Return(c)
 	if len(line.line) > 0 {
 		line.line = strings.Trim(line.line, "\n")
 	}
