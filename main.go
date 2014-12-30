@@ -6,7 +6,7 @@
 
 * Creation Date : 12-14-2014
 
-* Last Modified : Tue 30 Dec 2014 07:06:14 PM UTC
+* Last Modified : Tue 30 Dec 2014 07:31:36 PM UTC
 
 * Created By : Kiyor
 
@@ -36,7 +36,7 @@ var (
 
 func init() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	pool = NewPool(20)
+	pool = NewPool(runtime.NumCPU())
 }
 
 type Line struct {
