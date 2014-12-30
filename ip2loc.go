@@ -6,7 +6,7 @@
 
 * Creation Date : 12-14-2014
 
-* Last Modified : Mon 15 Dec 2014 07:24:02 PM UTC
+* Last Modified : Tue 30 Dec 2014 06:51:29 PM UTC
 
 * Created By : Kiyor
 
@@ -20,10 +20,12 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"sync"
 )
 
 var (
-	ipLocMap map[string]*ipLoc
+	ipLocMap = make(map[string]*ipLoc)
+	mu       = &sync.Mutex{}
 )
 
 type ipLoc struct {
@@ -45,6 +47,10 @@ func ip2loc(ip string) *ipLoc {
 	}
 	b, _ := ioutil.ReadAll(res.Body)
 	json.Unmarshal(b, &i)
+
+	mu.Lock()
+	defer mu.Unlock()
+	ipLocMap[ip] = &i
 
 	return &i
 }

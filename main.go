@@ -6,7 +6,7 @@
 
 * Creation Date : 12-14-2014
 
-* Last Modified : Thu Dec 18 17:00:19 2014
+* Last Modified : Tue 30 Dec 2014 06:51:51 PM UTC
 
 * Created By : Kiyor
 
@@ -35,7 +35,6 @@ var (
 
 func init() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	ipLocMap = make(map[string]*ipLoc)
 }
 
 type Line struct {
