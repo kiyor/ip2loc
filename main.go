@@ -6,7 +6,7 @@
 
 * Creation Date : 12-14-2014
 
-* Last Modified : Tue 30 Dec 2014 06:51:51 PM UTC
+* Last Modified : Tue 30 Dec 2014 07:20:35 PM UTC
 
 * Created By : Kiyor
 
@@ -83,7 +83,7 @@ func main() {
 					index: i,
 					line:  l,
 				}
-				for *wg.count > 50 {
+				for *wg.count > int64(runtime.NumCPU()) {
 					time.Sleep(1 * time.Millisecond)
 				}
 				wg.add(1)
