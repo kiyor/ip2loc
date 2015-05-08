@@ -1,5 +1,9 @@
 #	ip2loc
 
+1. If you haven't install golang then [download and install](http://golang.org/dl/)
+2. `go get -u github.com/kiyor/ip2loc`
+3. `go install github.com/kiyor/ip2loc`
+
 ##	How to use
 
 ```bash
