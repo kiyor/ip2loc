@@ -6,7 +6,7 @@
 
 * Creation Date : 12-14-2014
 
-* Last Modified : Tue 30 Dec 2014 07:20:35 PM UTC
+* Last Modified : Fri 08 May 2015 06:24:21 PM UTC
 
 * Created By : Kiyor
 
@@ -30,7 +30,7 @@ import (
 )
 
 var (
-	reIp = regexp.MustCompile(`(([^\d])|^)(\d+\.\d+\.\d+\.\d+)(([^\d])|$)`)
+	reIp = regexp.MustCompile(`(\d+\.\d+\.\d+\.\d+)`)
 )
 
 func init() {
@@ -124,7 +124,7 @@ func processing(line Line, ch chan Line) {
 
 		done := make(map[string]bool)
 		for _, v := range part {
-			ipStr := v[3]
+			ipStr := v[1]
 			if ip := net.ParseIP(ipStr); ip != nil {
 				if ip.IsLoopback() {
 					continue
