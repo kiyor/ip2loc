@@ -6,7 +6,7 @@
 
 * Creation Date : 12-14-2014
 
-* Last Modified : Thu 13 Apr 2017 01:11:03 AM UTC
+* Last Modified : Thu 13 Apr 2017 04:46:16 PM UTC
 
 * Created By : Kiyor
 
@@ -27,6 +27,9 @@ import (
 var (
 	ipLocMap = make(map[string]*ipLoc)
 	mu       = new(sync.RWMutex)
+	client   = &http.Client{
+		Timeout: 3 * time.Second,
+	}
 )
 
 type ipLoc struct {
@@ -58,9 +61,10 @@ func ip2loc(ip string) *ipLoc {
 
 	req, _ := http.NewRequest("GET", fmt.Sprintf("http://%s/json/%s", *flagIp, ip), nil)
 	req.Host = *flagHost
-	res, err := http.DefaultClient.Do(req)
+	res, err := client.Do(req)
 	if err != nil {
 		log.Printf("error %s\n", err.Error())
+		return nil
 	}
 	b, _ := ioutil.ReadAll(res.Body)
 	json.Unmarshal(b, &i)

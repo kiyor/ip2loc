@@ -6,7 +6,7 @@
 
 * Creation Date : 12-14-2014
 
-* Last Modified : Thu 13 Apr 2017 02:21:46 AM UTC
+* Last Modified : Thu 13 Apr 2017 04:47:11 PM UTC
 
 * Created By : Kiyor
 
@@ -36,7 +36,7 @@ var (
 	enableMap  *bool = flag.Bool("map", false, "enable google map")
 	flagIp           = flag.String("addr", "ip.2ns.io", "freegeoip address")
 	flagHost         = flag.String("host", *flagIp, "freegeoip Host header address")
-	flagExpire       = flag.Duration("expire", 15*time.Minute, "expire time")
+	flagExpire       = flag.Duration("expire", 5*time.Minute, "expire time")
 	// 	cache     gcache.Cache
 	mapData = newMapData()
 )
@@ -59,7 +59,7 @@ func newMapData() MapData {
 }
 
 func cron() {
-	ticker := time.NewTicker(time.Minute * 1)
+	ticker := time.NewTicker(*flagExpire / 10)
 	go func() {
 		for range ticker.C {
 			cleanMap()
@@ -179,6 +179,9 @@ func processing(line Line, ch chan Line) {
 				}
 				if _, ok := done[ipStr]; !ok {
 					loc := ip2loc(ipStr)
+					if loc == nil {
+						continue
+					}
 					var replace string
 					if len(loc.CountryCode) > 0 {
 						replace += loc.CountryCode + " "
