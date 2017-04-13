@@ -6,7 +6,7 @@
 
 * Creation Date : 12-14-2014
 
-* Last Modified : Fri 08 May 2015 06:24:21 PM UTC
+* Last Modified : Thu 13 Apr 2017 02:21:46 AM UTC
 
 * Created By : Kiyor
 
@@ -16,6 +16,7 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"github.com/wsxiaoys/terminal/color"
 	"io"
@@ -30,10 +31,54 @@ import (
 )
 
 var (
-	reIp = regexp.MustCompile(`(\d+\.\d+\.\d+\.\d+)`)
+	reIp             = regexp.MustCompile(`(\d+\.\d+\.\d+\.\d+)`)
+	enableLL   *bool = flag.Bool("ll", false, "enable show longitude and latitude")
+	enableMap  *bool = flag.Bool("map", false, "enable google map")
+	flagIp           = flag.String("addr", "ip.2ns.io", "freegeoip address")
+	flagHost         = flag.String("host", *flagIp, "freegeoip Host header address")
+	flagExpire       = flag.Duration("expire", 15*time.Minute, "expire time")
+	// 	cache     gcache.Cache
+	mapData = newMapData()
 )
 
+type MapData struct {
+	m map[mapKey]*ipLoc
+	*sync.RWMutex
+}
+
+type mapKey struct {
+	t time.Time
+	r string
+}
+
+func newMapData() MapData {
+	return MapData{
+		m:       make(map[mapKey]*ipLoc),
+		RWMutex: new(sync.RWMutex),
+	}
+}
+
+func cron() {
+	ticker := time.NewTicker(time.Minute * 1)
+	go func() {
+		for range ticker.C {
+			cleanMap()
+		}
+	}()
+}
+
+func cleanMap() {
+	mapData.Lock()
+	defer mapData.Unlock()
+	for k := range mapData.m {
+		if time.Now().Sub(k.t) > *flagExpire {
+			delete(mapData.m, k)
+		}
+	}
+}
+
 func init() {
+	flag.Parse()
 	runtime.GOMAXPROCS(runtime.NumCPU())
 }
 
@@ -58,6 +103,9 @@ func (wg *Wg) done() {
 }
 
 func main() {
+	if *enableMap {
+		go runHttp()
+	}
 
 	stop := make(chan bool)
 	ch := make(chan Line, 1)
@@ -140,6 +188,11 @@ func processing(line Line, ch chan Line) {
 					}
 					if len(loc.City) > 0 {
 						replace += loc.City + " "
+					}
+					if *enableLL {
+						if loc.Latitude != 0 {
+							replace += fmt.Sprintf("%v %v ", loc.Latitude, loc.Longitude)
+						}
 					}
 					if len(replace) > 0 {
 						replace = replace[:len(replace)-1]

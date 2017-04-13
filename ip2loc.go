@@ -6,7 +6,7 @@
 
 * Creation Date : 12-14-2014
 
-* Last Modified : Tue 30 Dec 2014 06:51:29 PM UTC
+* Last Modified : Thu 13 Apr 2017 01:11:03 AM UTC
 
 * Created By : Kiyor
 
@@ -21,27 +21,44 @@ import (
 	"log"
 	"net/http"
 	"sync"
+	"time"
 )
 
 var (
 	ipLocMap = make(map[string]*ipLoc)
-	mu       = &sync.Mutex{}
+	mu       = new(sync.RWMutex)
 )
 
 type ipLoc struct {
-	CountryCode string `json:"country_code"`
-	CountryName string `json:"country_name"`
-	RegionName  string `json:"region_name"`
-	City        string `json:"city"`
+	CountryCode string  `json:"country_code"`
+	CountryName string  `json:"country_name"`
+	RegionName  string  `json:"region_name"`
+	City        string  `json:"city"`
+	Latitude    float64 `json:"latitude"`
+	Longitude   float64 `json:"longitude"`
 }
 
 func ip2loc(ip string) *ipLoc {
-	if val, ok := ipLocMap[ip]; ok {
+	mu.RLock()
+	val, ok := ipLocMap[ip]
+	mu.RUnlock()
+
+	id := random(4)
+
+	if ok {
+		if *enableMap {
+			mapData.Lock()
+			mapData.m[mapKey{time.Now(), id}] = val
+			mapData.Unlock()
+		}
 		return val
 	}
+
 	var i ipLoc
 
-	res, err := http.Get(fmt.Sprintf("http://66.175.223.83:8080/json/%s", ip))
+	req, _ := http.NewRequest("GET", fmt.Sprintf("http://%s/json/%s", *flagIp, ip), nil)
+	req.Host = *flagHost
+	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		log.Printf("error %s\n", err.Error())
 	}
@@ -51,6 +68,12 @@ func ip2loc(ip string) *ipLoc {
 	mu.Lock()
 	defer mu.Unlock()
 	ipLocMap[ip] = &i
+
+	if *enableMap {
+		mapData.Lock()
+		mapData.m[mapKey{time.Now(), id}] = &i
+		mapData.Unlock()
+	}
 
 	return &i
 }
