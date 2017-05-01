@@ -32,6 +32,6 @@ open browser http://${ip}:7676
 
 ##	Note
 
--	change `ip2loc.go` api url to your own [freegeoip](https://github.com/fiorix/freegeoip) server if you want
+-	change flag (`ip2loc -host freegeoip.net -addr freegeoip.net`) to your own [freegeoip](https://github.com/fiorix/freegeoip) server if you want
 
 -	feel free to use or fork
