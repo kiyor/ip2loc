@@ -18,11 +18,15 @@ mtr --no-dns -r -c 10 google.com | ip2loc
 
 ![imt](http://ccnacdn.s3.amazonaws.com/img/2014-12-15_nginxln2html__ssh__14144_11-31-44.png)
 
-### enable map output
+### Enable map output
+
+run:
 
 ```bash
 sudo cat /var/log/secure|ip2loc -map >/dev/null
 ```
+
+open browser http://${ip}:7676
 
 ![](https://kiyor.s3.amazonaws.com/imgs/2017-05-01_15-19-36_Marker_Clustering.png)
 
