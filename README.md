@@ -18,6 +18,14 @@ mtr --no-dns -r -c 10 google.com | ip2loc
 
 ![imt](http://ccnacdn.s3.amazonaws.com/img/2014-12-15_nginxln2html__ssh__14144_11-31-44.png)
 
+### enable map output
+
+```bash
+sudo cat /var/log/secure|ip2loc -map >/dev/null
+```
+
+![](https://kiyor.s3.amazonaws.com/imgs/2017-05-01_15-19-36_Marker_Clustering.png)
+
 ##	Note
 
 -	change `ip2loc.go` api url to your own [freegeoip](https://github.com/fiorix/freegeoip) server if you want
