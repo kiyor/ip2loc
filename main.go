@@ -6,7 +6,7 @@
 
 * Creation Date : 12-14-2014
 
-* Last Modified : Thu 13 Apr 2017 04:47:11 PM UTC
+* Last Modified : Fri 14 Apr 2017 12:18:29 AM UTC
 
 * Created By : Kiyor
 
@@ -31,51 +31,13 @@ import (
 )
 
 var (
-	reIp             = regexp.MustCompile(`(\d+\.\d+\.\d+\.\d+)`)
-	enableLL   *bool = flag.Bool("ll", false, "enable show longitude and latitude")
-	enableMap  *bool = flag.Bool("map", false, "enable google map")
-	flagIp           = flag.String("addr", "ip.2ns.io", "freegeoip address")
-	flagHost         = flag.String("host", *flagIp, "freegeoip Host header address")
-	flagExpire       = flag.Duration("expire", 5*time.Minute, "expire time")
-	// 	cache     gcache.Cache
-	mapData = newMapData()
+	reIp            = regexp.MustCompile(`(\d+\.\d+\.\d+\.\d+)`)
+	enableLL  *bool = flag.Bool("ll", false, "enable show longitude and latitude")
+	enableMap *bool = flag.Bool("map", false, "enable google map")
+	flagIp          = flag.String("addr", "ip.2ns.io", "freegeoip address")
+	flagHost        = flag.String("host", *flagIp, "freegeoip Host header address")
+	flagSort        = flag.Bool("s", false, "follow sort by stdin")
 )
-
-type MapData struct {
-	m map[mapKey]*ipLoc
-	*sync.RWMutex
-}
-
-type mapKey struct {
-	t time.Time
-	r string
-}
-
-func newMapData() MapData {
-	return MapData{
-		m:       make(map[mapKey]*ipLoc),
-		RWMutex: new(sync.RWMutex),
-	}
-}
-
-func cron() {
-	ticker := time.NewTicker(*flagExpire / 10)
-	go func() {
-		for range ticker.C {
-			cleanMap()
-		}
-	}()
-}
-
-func cleanMap() {
-	mapData.Lock()
-	defer mapData.Unlock()
-	for k := range mapData.m {
-		if time.Now().Sub(k.t) > *flagExpire {
-			delete(mapData.m, k)
-		}
-	}
-}
 
 func init() {
 	flag.Parse()
@@ -121,7 +83,9 @@ func main() {
 			if err != nil {
 				if err == io.EOF {
 					wg.Wait()
-					stop <- true
+					if !*enableMap {
+						stop <- true
+					}
 				} else {
 					log.Println(err.Error())
 					os.Exit(1)
@@ -145,17 +109,22 @@ func main() {
 	for {
 		select {
 		case l := <-ch:
-			switch l.index {
-			case i2:
+			if *flagSort {
+				switch l.index {
+				case i2:
+					fmt.Println(l.line)
+					i2++
+					wg.done()
+				default:
+					// if index is not expect, then create a backgroup process send back channel
+					go func(l Line) {
+						time.Sleep(1 * time.Millisecond)
+						ch <- l
+					}(l)
+				}
+			} else {
 				fmt.Println(l.line)
-				i2++
 				wg.done()
-			default:
-				// if index is not expect, then create a backgroup process send back channel
-				go func(l Line) {
-					time.Sleep(1 * time.Millisecond)
-					ch <- l
-				}(l)
 			}
 		case <-stop:
 			os.Exit(0)
@@ -174,7 +143,8 @@ func processing(line Line, ch chan Line) {
 		for _, v := range part {
 			ipStr := v[1]
 			if ip := net.ParseIP(ipStr); ip != nil {
-				if ip.IsLoopback() {
+				// 				if ip.IsLoopback() {
+				if isMyIP(ip) {
 					continue
 				}
 				if _, ok := done[ipStr]; !ok {
@@ -188,6 +158,8 @@ func processing(line Line, ch chan Line) {
 					}
 					if len(loc.RegionName) > 0 {
 						replace += loc.RegionName + " "
+					} else if len(loc.RegionCode) > 0 {
+						replace += loc.RegionCode + " "
 					}
 					if len(loc.City) > 0 {
 						replace += loc.City + " "

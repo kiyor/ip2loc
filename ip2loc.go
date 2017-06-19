@@ -6,7 +6,7 @@
 
 * Creation Date : 12-14-2014
 
-* Last Modified : Thu 13 Apr 2017 04:46:16 PM UTC
+* Last Modified : Mon 19 Jun 2017 07:40:23 PM UTC
 
 * Created By : Kiyor
 
@@ -35,6 +35,7 @@ var (
 type ipLoc struct {
 	CountryCode string  `json:"country_code"`
 	CountryName string  `json:"country_name"`
+	RegionCode  string  `json:"region_code"`
 	RegionName  string  `json:"region_name"`
 	City        string  `json:"city"`
 	Latitude    float64 `json:"latitude"`
@@ -66,6 +67,7 @@ func ip2loc(ip string) *ipLoc {
 		log.Printf("error %s\n", err.Error())
 		return nil
 	}
+	defer res.Body.Close()
 	b, _ := ioutil.ReadAll(res.Body)
 	json.Unmarshal(b, &i)
 
